@@ -14,6 +14,38 @@ Develop a Next.js frontend application to support creating, retrieving, and upda
 ├── public/ # Static assets
 └── jest.setup.js # Test configuration
 
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm run setup
+   ```
+3. Set up environment variables:
+
+   ```
+   DATABASE_URL=
+   JWT_SECRET=
+
+   already added in .env local
+   ```
+
+4. Run database migrations:
+   ```bash
+   npx prisma migrate dev
+   ```
+5. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+6. To login use the following credentials:
+   ```bash
+   email: admin@alma.com
+   password: admin123
+   ```
+
 ## Core Features
 
 ### Public Features
@@ -112,32 +144,6 @@ Static files including:
 - Protected API routes
 - Secure file uploads
 - Role-based access control
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm run setup
-   ```
-3. Set up environment variables =:
-
-   ```
-   DATABASE_URL=
-   JWT_SECRET=
-   ```
-   *needed only if your creating your own db setup; not need for testing the app within this repo
-
-4. Run database migrations:
-   ```bash
-   npx prisma migrate dev
-   ```
-   *needed only on db schema change; not need for testing the app within this repo
-   
-6. Start the development server:
-   ```bash
-   npm run dev
-   ```
 
 ## Development Guidelines
 

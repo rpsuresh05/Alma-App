@@ -1,5 +1,5 @@
 import { compare, hash } from "bcryptjs"
-import { sign, verify } from "jsonwebtoken"
+// import { sign, verify } from "jsonwebtoken"
 import { prisma } from "./prisma"
 import { cookies } from "next/headers"
 
@@ -23,36 +23,36 @@ export async function authenticateUser(email: string, password: string) {
   return userWithoutPassword
 }
 
-export function generateToken(userId: string) {
-  return sign({ sub: userId }, JWT_SECRET, { expiresIn: JWT_EXPIRY })
-}
+// export function generateToken(userId: string) {
+//   return sign({ sub: userId }, JWT_SECRET, { expiresIn: JWT_EXPIRY })
+// }
 
-export function verifyToken(token: string) {
-  try {
-    const decoded = verify(token, JWT_SECRET)
-    return decoded as { sub: string }
-  } catch (error) {
-    return null
-  }
-}
+  // export function verifyToken(token: string) {
+  //   try {
+  //     const decoded = verify(token, JWT_SECRET)
+  //     return decoded as { sub: string }
+  //   } catch (error) {
+  //     return null
+  //   }
+  // }
 
-export async function getUserFromToken(token: string) {
-  const decoded = verifyToken(token)
-  if (!decoded) return null
+// export async function getUserFromToken(token: string) {
+//   const decoded = verifyToken(token)
+//   if (!decoded) return null
 
-  const user = await prisma.user.findUnique({
-    where: { id: decoded.sub },
-    select: { id: true, email: true, name: true },
-  })
+//   const user = await prisma.user.findUnique({
+//     where: { id: decoded.sub },
+//     select: { id: true, email: true, name: true },
+//   })
 
-  return user
-}
+//   return user
+// }
 
 export async function getAuthUser() {
-  const token = cookies().get("token")?.value
+  const token = cookies().get("auth-token")?.value
   if (!token) return null
 
-  return getUserFromToken(token)
+  return true
 }
 
 export async function hashPassword(password: string) {
