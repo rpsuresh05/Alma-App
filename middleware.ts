@@ -2,18 +2,18 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export function middleware(request: NextRequest) {
-  // Check if the request is for an admin route
+  const isAuthenticated = request.cookies.get("auth-token")?.value
+
+  // Protect admin routes
   if (request.nextUrl.pathname.startsWith("/admin")) {
-    // Skip the API routes as they handle their own auth
-    if (request.nextUrl.pathname.startsWith("/api/")) {
-      return NextResponse.next()
+    if (!isAuthenticated) {
+      return NextResponse.redirect(new URL("/login", request.url))
     }
+  }
 
-    // Check if the user has a token
-    const token = request.cookies.get("token")?.value
-
-    // If no token and not already on the login page, redirect to login
-    if (!token && !request.nextUrl.pathname.endsWith("/admin")) {
+  // Prevent authenticated users from accessing login page
+  if (request.nextUrl.pathname === "/login") {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL("/admin", request.url))
     }
   }
@@ -22,6 +22,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/login"],
 }
 

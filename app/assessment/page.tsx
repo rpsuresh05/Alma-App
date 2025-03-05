@@ -17,9 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileIcon, FileTextIcon } from "lucide-react";
 import Link from "next/link";
 import type { VisaType } from "@/lib/types";
+import { useAssessmentSubmit } from "@/hooks/useAssessmentSubmit";
+import { ButtonLoading } from "@/components/ui/button-loading";
 
 export default function AssessmentPage() {
   const [formState, setFormState] = useState<{
@@ -31,7 +32,6 @@ export default function AssessmentPage() {
     visasOfInterest: VisaType[];
     resume: File | null;
     additionalInfo: string;
-    isSubmitting: boolean;
     error: string | null;
     submitted: boolean;
     leadId: string;
@@ -44,7 +44,6 @@ export default function AssessmentPage() {
     visasOfInterest: [],
     resume: null,
     additionalInfo: "",
-    isSubmitting: false,
     error: null,
     submitted: false,
     leadId: "",
@@ -63,25 +62,14 @@ export default function AssessmentPage() {
     });
   };
 
+  const submitMutation = useAssessmentSubmit();
+
   const handleSubmitBasicInfo = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setFormState((prev) => ({ ...prev, isSubmitting: true, error: null }));
+    setFormState((prev) => ({ ...prev, error: null }));
 
     try {
-      // Updated validation to include resume and additionalInfo
-      // if (
-      //   !formState.firstName ||
-      //   !formState.lastName ||
-      //   !formState.email ||
-      //   !formState.linkedInProfile ||
-      //   !formState.additionalInfo ||
-      //   !formState.resume ||
-      //   formState.visasOfInterest.length === 0
-      // ) {
-      //   throw new Error("Please fill in all required fields");
-      // }
-
       // Validate first name
       if (
         !formState.firstName ||
@@ -152,59 +140,37 @@ export default function AssessmentPage() {
         );
       }
 
-      // Submit basic info to create a lead
-      const response = await fetch("/api/leads", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstName: formState.firstName,
-          lastName: formState.lastName,
-          email: formState.email,
-          country: formState.country,
-          linkedInProfile: formState.linkedInProfile,
-          visasOfInterest: formState.visasOfInterest,
-          additionalInfo: formState.additionalInfo,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to submit form");
+      const formData = new FormData();
+      if (formState.resume) {
+        formData.append("file", formState.resume);
       }
 
-      const lead = await response.json();
+      const result = await submitMutation.mutateAsync({
+        formData,
+        formState,
+      });
 
       setFormState((prev) => ({
         ...prev,
         submitted: true,
-        leadId: lead.id,
-        isSubmitting: false,
+        leadId: result.id,
       }));
     } catch (error: any) {
       setFormState((prev) => ({
         ...prev,
         error: error.message || "An error occurred while submitting the form",
-        isSubmitting: false,
       }));
     }
   };
 
-  // const handleResumeUploadSuccess = (fileUrl: string) => {
-  //   setFormState((prev) => ({
-  //     ...prev,
-  //     submitted: true,
-  //   }));
-  // };
-
-  // const handleSkipResumeUpload = () => {
-  //   setFormState((prev) => ({ ...prev, submitted: true }));
-  // };
-
   if (formState.submitted) {
     return (
       <div className="min-h-screen flex flex-col">
+        {submitMutation.isPending && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+          </div>
+        )}
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="w-full max-w-xl mx-auto bg-white p-8 rounded-lg">
             <div className="flex flex-col items-center space-y-4 text-center">
@@ -230,6 +196,11 @@ export default function AssessmentPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {submitMutation.isPending && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+        </div>
+      )}
       <div className="flex flex-row bg-[#D4D99B]">
         <div className="hidden md:block">
           <Image src="banner2.png" alt="Banner" width={230} height={100} />
@@ -264,11 +235,6 @@ export default function AssessmentPage() {
             </div>
           </div>
 
-          {/* {formState.error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-              {formState.error}
-            </div>
-          )} */}
           <form
             onSubmit={handleSubmitBasicInfo}
             className="space-y-6 max-w-sm mx-auto"
@@ -484,22 +450,14 @@ export default function AssessmentPage() {
                 {formState.error}
               </div>
             )}
-            <Button
+            <ButtonLoading
               type="submit"
               className="w-full bg-[#1B1B1B] hover:bg-[#1B1B1B]/90"
-              // disabled={
-              //   formState.isSubmitting ||
-              //   !formState.firstName ||
-              //   !formState.lastName ||
-              //   !formState.email ||
-              //   !formState.linkedInProfile ||
-              //   !formState.additionalInfo ||
-              //   !formState.resume ||
-              //   formState.visasOfInterest.length === 0
-              // }
+              isLoading={submitMutation.isPending}
+              loadingText="Submitting..."
             >
-              {formState.isSubmitting ? "Submitting..." : "Submit"}
-            </Button>
+              Submit
+            </ButtonLoading>
           </form>
         </div>
       </div>

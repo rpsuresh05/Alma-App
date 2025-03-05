@@ -1,36 +1,31 @@
-import { NextResponse } from "next/server"
-import { authenticateUser, generateToken } from "@/lib/auth"
-import { cookies } from "next/headers"
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json()
+    const body = await request.json()
+    const { email, password } = body
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
-    }
-
-    const user = await authenticateUser(email, password)
-    if (!user) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-    }
-
-    const token = generateToken(user.id)
-
-    // Set the token as a cookie
+    // Perform your authentication logic here
+    // If authentication is successful:
+    
+    // Set a secure HTTP-only cookie
     cookies().set({
-      name: "token",
-      value: token,
+      name: 'auth-token',
+      value: 'your-jwt-token-here', // Replace with actual JWT token
       httpOnly: true,
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      // maxAge: 60 * 60 * 24 * 7 // 1 week
     })
 
-    return NextResponse.json({ user })
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Login error:", error)
-    return NextResponse.json({ error: "An error occurred during login" }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Authentication failed' },
+      { status: 401 }
+    )
   }
 }
 
