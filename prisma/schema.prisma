@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lead {
+  id              String   @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String
+  country         String?
+  linkedInProfile String
+  visasOfInterest String[] // Using Postgres array type for multi-select
+  resumeUrl       String?  // URL to the stored file
+  additionalInfo  String?
+  status          String   @default("PENDING") // PENDING or REACHED_OUT
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  files           File[]   // Relation to uploaded files
+}
+
+model File {
+  id          String   @id @default(cuid())
+  filename    String
+  contentType String
+  size        Int
+  url         String?  // If storing externally
+  data        Bytes?   // If storing in database
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
